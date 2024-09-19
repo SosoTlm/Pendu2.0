@@ -88,6 +88,33 @@
             margin-bottom: 20px;
         }
 
+        #login-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #login-panel input {
+            padding: 10px;
+            margin-bottom: 10px;
+            width: 200px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #login-panel button {
+            padding: 10px 20px;
+            background-color: blue;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
         @media (max-width: 768px) {
             h1 {
                 font-size: 30px;
@@ -123,6 +150,11 @@
     <h3>Désolé, problèmes techniques sont survenus !</h3>
 </div>
 
+<div id="login-panel" class="creator-access">
+    <input type="password" id="password" placeholder="Entrez le mot de passe">
+    <button id="loginBtn">Se connecter</button>
+</div>
+
 <button id="dangerBtn" class="creator-access">Stop Le Site</button>
 <button id="restoreBtn" class="creator-access">Rétablir Le Site</button>
 
@@ -135,10 +167,13 @@
     const restoreBtn = document.getElementById("restoreBtn");
     const game = document.getElementById("game");
     const message = document.getElementById("message");
+    const loginPanel = document.getElementById("login-panel");
+    const loginBtn = document.getElementById("loginBtn");
+    const passwordInput = document.getElementById("password");
 
     let attempts = 6;
     let guessedWord = Array(word.length).fill('_');
-    let isCreator = true; // Simulate creator access
+    const correctPassword = "admin123"; // Définir ici le mot de passe
 
     function updateGameUI() {
         wordContainer.innerHTML = guessedWord.join(" ");
@@ -197,6 +232,16 @@
         }
     }
 
+    // Fonction pour activer le polling pour vérifier l'état du site toutes les 5 secondes
+    function startPolling() {
+        setInterval(() => {
+            const siteStatus = localStorage.getItem("siteStatus");
+            if (siteStatus) {
+                setSiteStatus(siteStatus);
+            }
+        }, 5000); // Vérification toutes les 5 secondes
+    }
+
     dangerBtn.onclick = () => {
         localStorage.setItem("siteStatus", "stopped");
         setSiteStatus("stopped");
@@ -207,18 +252,28 @@
         setSiteStatus("active");
     };
 
-    // Check and apply site status from localStorage
+    // Gestion de l'accès avec mot de passe
+    loginBtn.onclick = () => {
+        const enteredPassword = passwordInput.value;
+        if (enteredPassword === correctPassword) {
+            alert("Accès autorisé");
+            loginPanel.style.display = "none";
+            document.querySelectorAll(".creator-access").forEach(btn => btn.style.display = "block");
+        } else {
+            alert("Mot de passe incorrect !");
+        }
+    };
+
+    // Appliquer l'état du site à l'initialisation
     const siteStatus = localStorage.getItem("siteStatus");
     if (siteStatus) {
         setSiteStatus(siteStatus);
     } else {
-        setSiteStatus("active"); // Default status
+        setSiteStatus("active"); // Statut par défaut
     }
 
-    // Simulate creator access control
-    if (isCreator) {
-        document.querySelectorAll(".creator-access").forEach(btn => btn.style.display = "block");
-    }
+    // Lancer le polling pour vérifier l'état du site
+    startPolling();
 
     updateGameUI();
     game.style.display = "block";
