@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pendu - Version Responsive</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+
+        #game {
+            display: none;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            text-align: center;
+            max-width: 100%;
+            width: 400px;
+            margin: 20px;
+        }
+
+        #message {
+            display: none;
+            text-align: center;
+            background-color: #ffcccc;
+            padding: 50px 30px;
+            border-radius: 10px;
+            border: 2px solid red;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        h1 {
+            color: red;
+            font-size: 40px;
+            margin-bottom: 20px;
+        }
+
+        h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        #dangerBtn, #restoreBtn {
+            display: none;
+            margin-top: 20px;
+            padding: 12px 24px;
+            font-size: 16px;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        #dangerBtn {
+            background-color: red;
+        }
+
+        #restoreBtn {
+            background-color: green;
+        }
+
+        .letter {
+            font-size: 20px;
+            margin: 5px;
+            padding: 10px;
+            background: #f4f4f4;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #word {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 30px;
+            }
+
+            h3 {
+                font-size: 18px;
+            }
+
+            .letter {
+                font-size: 16px;
+                padding: 8px;
+            }
+
+            #dangerBtn, #restoreBtn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="game">
+    <h1>Jeu du Pendu</h1>
+    <div id="word"></div>
+    <div id="letters"></div>
+    <p>Nombre d'essais restants : <span id="attempts"></span></p>
+</div>
+
+<div id="message">
+    <h1>Oops..</h1>
+    <h3>Désolé, problèmes techniques sont survenus !</h3>
+</div>
+
+<button id="dangerBtn" class="creator-access">Stop Le Site</button>
+<button id="restoreBtn" class="creator-access">Rétablir Le Site</button>
+
+<script>
+    const word = "PENDU";
+    const lettersContainer = document.getElementById("letters");
+    const wordContainer = document.getElementById("word");
+    const attemptsContainer = document.getElementById("attempts");
+    const dangerBtn = document.getElementById("dangerBtn");
+    const restoreBtn = document.getElementById("restoreBtn");
+    const game = document.getElementById("game");
+    const message = document.getElementById("message");
+
+    let attempts = 6;
+    let guessedWord = Array(word.length).fill('_');
+    let isCreator = true; // Simulate creator access
+
+    function updateGameUI() {
+        wordContainer.innerHTML = guessedWord.join(" ");
+        attemptsContainer.innerText = attempts;
+        lettersContainer.innerHTML = '';
+
+        for (let i = 65; i <= 90; i++) {
+            const letter = String.fromCharCode(i);
+            const letterBtn = document.createElement("button");
+            letterBtn.classList.add("letter");
+            letterBtn.innerText = letter;
+            letterBtn.onclick = () => guessLetter(letter);
+            lettersContainer.appendChild(letterBtn);
+        }
+    }
+
+    function guessLetter(letter) {
+        let found = false;
+        for (let i = 0; i < word.length; i++) {
+            if (word[i] === letter) {
+                guessedWord[i] = letter;
+                found = true;
+            }
+        }
+
+        if (!found) {
+            attempts--;
+        }
+
+        if (attempts === 0) {
+            alert("Vous avez perdu!");
+            resetGame();
+        }
+
+        if (guessedWord.join('') === word) {
+            alert("Félicitations! Vous avez gagné!");
+            resetGame();
+        }
+
+        updateGameUI();
+    }
+
+    function resetGame() {
+        guessedWord = Array(word.length).fill('_');
+        attempts = 6;
+        updateGameUI();
+    }
+
+    function setSiteStatus(status) {
+        if (status === "stopped") {
+            game.style.display = "none";
+            message.style.display = "block";
+        } else if (status === "active") {
+            message.style.display = "none";
+            game.style.display = "block";
+        }
+    }
+
+    dangerBtn.onclick = () => {
+        localStorage.setItem("siteStatus", "stopped");
+        setSiteStatus("stopped");
+    };
+
+    restoreBtn.onclick = () => {
+        localStorage.setItem("siteStatus", "active");
+        setSiteStatus("active");
+    };
+
+    // Check and apply site status from localStorage
+    const siteStatus = localStorage.getItem("siteStatus");
+    if (siteStatus) {
+        setSiteStatus(siteStatus);
+    } else {
+        setSiteStatus("active"); // Default status
+    }
+
+    // Simulate creator access control
+    if (isCreator) {
+        document.querySelectorAll(".creator-access").forEach(btn => btn.style.display = "block");
+    }
+
+    updateGameUI();
+    game.style.display = "block";
+</script>
+
+</body>
+</html>
